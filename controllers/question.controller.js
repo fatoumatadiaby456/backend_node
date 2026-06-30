@@ -1,24 +1,34 @@
 const Question = require('../models/question.model');
 
-// Récupérer toutes les questions
-const getQuestions = async (req, res) => {
-  try {
-    const questions = await Question.find().sort({ createdAt: -1 });
-    res.json(questions);
-  } catch (err) {
-    res.status(500).json({ message: "Erreur serveur" });
-  }
+
+
+exports.creerQuestion = async (req, res) => {
+    try {
+        const { titre, description, tags } = req.body;
+      
+        const question = await Question.create({
+            titre,
+            description,
+            auteur: req.user.id,
+            tags
+        });
+        res.status(201).json({message:'Quéstion créer avec succés' , question});
+    } catch (error) {
+        res.status(500).json({ message: error.message });
+        console.log(error)
+    }
 };
 
-// Créer une question
-const createQuestion = async (req, res) => {
-  try {
-    const { titre, description, auteur } = req.body;
-    const question = await Question.create({ titre, description, auteur });
-    res.status(201).json(question);
-  } catch (err) {
-    res.status(400).json({ message: "Données invalides" });
-  }
-};
 
-module.exports = { getQuestions, createQuestion };
+exports.AfficherQuestions = async (req, res) => {
+    try {
+        const questions = await Question.find()
+            .populate("auteur", "nom email",) 
+            .sort({ createdAt: -1 }); 
+
+        res.status(200).json(questions);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: error.message });
+    }
+};
